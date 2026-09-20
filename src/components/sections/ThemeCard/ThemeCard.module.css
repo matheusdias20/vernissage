@@ -1,0 +1,70 @@
+.card {
+  position: relative;
+  flex: 0 0 70%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-band);
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 641px) {
+  .card {
+    flex: 0 0 240px;
+  }
+}
+
+.skeleton {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-border);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-band);
+}
+
+/* escurecimento leve, mais forte perto do rótulo, para manter o texto legível */
+.cover:not(.fallback)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(31, 30, 28, 0.65) 0%, rgba(31, 30, 28, 0) 55%);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.label {
+  position: absolute;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 1;
+  color: var(--color-on-dark);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  text-align: left;
+}
+
+.fallback ~ .label {
+  color: var(--color-text);
+}

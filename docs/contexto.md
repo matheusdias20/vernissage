@@ -503,7 +503,7 @@ src/
 - [x] Fase 7.1: Header e Hero (o Hero será religado à nova API na migração)
 - [x] Migração para a API do Cleveland Museum of Art: camada de dados (artApi, formatters, imageUrl removido, artworkTypes, hooks e contexto da exposição)
 - [x] Migração para a API do Cleveland Museum of Art: Hero religado (imageUrl/imageWidth/imageHeight, formatters com artist/date, SearchBar variant dark e grid de 12 colunas no desktop)
-- [ ] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
+- [x] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
 - [ ] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
 - [ ] Fase 7.4: ArtworkModal
 - [ ] Fase 7.5: ExhibitionPanel e Footer

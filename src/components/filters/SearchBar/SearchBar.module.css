@@ -48,7 +48,7 @@
   background-color: var(--color-accent);
 }
 
-/* variante escura: para uso sobre fundos escuros, como o hero — controles claros */
+/* variante escura: para uso sobre fundos escuros, como o hero (controles claros) */
 .dark .input {
   background-color: var(--color-surface);
   color: var(--color-text);
