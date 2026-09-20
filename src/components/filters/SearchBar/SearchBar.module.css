@@ -1,0 +1,66 @@
+.form {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.input {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: var(--fs-body);
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.submit {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  transition:
+    background-color var(--transition),
+    color var(--transition);
+}
+
+/* variante clara: para uso sobre fundos claros, como a faixa da galeria */
+.light .input {
+  border-color: var(--color-dark);
+  background-color: transparent;
+  color: var(--color-text);
+}
+
+.light .submit {
+  background-color: var(--color-dark);
+  color: var(--color-on-dark);
+}
+
+.light .submit:hover {
+  background-color: var(--color-accent);
+}
+
+/* variante escura: para uso sobre fundos escuros, como o hero — controles claros */
+.dark .input {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.dark .submit {
+  background-color: var(--color-on-dark);
+  color: var(--color-dark);
+}
+
+.dark .submit:hover {
+  background-color: var(--color-accent);
+  color: var(--color-on-dark);
+}
