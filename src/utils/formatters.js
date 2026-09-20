@@ -1,9 +1,9 @@
-export function formatArtist(artistTitle) {
-  return artistTitle?.trim() ? artistTitle : 'Artista desconhecido'
+export function formatArtist(artist) {
+  return artist?.trim() ? artist : 'Artista desconhecido'
 }
 
-export function formatDate(dateDisplay) {
-  return dateDisplay?.trim() ? dateDisplay : 'Data não informada'
+export function formatDate(date) {
+  return date?.trim() ? date : 'Data não informada'
 }
 
 export function formatField(value) {
@@ -16,6 +16,7 @@ export function formatNumber(value) {
 }
 
 export function getImageAlt(artwork) {
-  if (artwork?.thumbnail?.alt_text) return artwork.thumbnail.alt_text
-  return `${formatField(artwork?.title)}, ${formatArtist(artwork?.artist_title)}`
+  const title = artwork?.title || ''
+  const artist = artwork?.artist || ''
+  return artist ? `${title}, ${artist}` : title
 }

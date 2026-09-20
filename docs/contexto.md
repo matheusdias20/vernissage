@@ -4,13 +4,14 @@ Este arquivo é a fonte única de informações do projeto. Leia-o inteiro antes
 
 ## 1. Visão geral
 
-Vernissage é um painel interativo em React + Vite que consome a API pública do Art Institute of Chicago (https://api.artic.edu/api/v1), sem chave de API.
+Vernissage é um painel interativo em React + Vite que consome a API aberta do Cleveland Museum of Art (https://openaccess-api.clevelandart.org/api), sem chave de API. A fonte de dados é exclusivamente essa API.
 
-- Problemática: o acervo do museu tem mais de 130 mil obras e é difícil de explorar para quem não sabe o que buscar.
+- Problemática: o acervo do museu tem mais de 40 mil obras com imagem em domínio público e é difícil de explorar para quem não sabe o que buscar.
 - Usuário: estudante ou curioso que gosta de arte e não tem repertório para buscar por nome.
 - Objetivo: transformar a exploração em curadoria. O usuário descobre obras por temas e busca, filtra, vê detalhes e monta a própria exposição, com título e obras salvas no navegador.
 - Entrega (desafio acadêmico): aplicação publicada na Vercel ou Netlify, repositório no GitHub e README com problemática, objetivo, tecnologias, API, funcionalidades, instruções para rodar, link publicado e uso de IA.
 - Requisitos do desafio: React + Vite, API pública, componentização, pelo menos uma interação com os dados, interface responsiva, CSS organizado e tratamento dos comportamentos da aplicação (carregando, erro, sem resultados).
+- Histórico da escolha da API: o projeto começou com a API do Art Institute of Chicago, mas o servidor de imagens dele bloqueia imagens embutidas em outros sites (403 do Cloudflare, verificado no navegador e em janela anônima). A troca para o Cleveland Museum of Art resolveu, porque as imagens carregam normalmente.
 
 ## 2. Regras de desenvolvimento
 
@@ -22,77 +23,89 @@ Vernissage é um painel interativo em React + Vite que consome a API pública do
 - A marca é o texto "VERNISSAGE" em caixa alta, peso 300 e espaçamento entre letras de 0.3em, feito em CSS no Header e no Footer.
 - Estilo visual minimalista e editorial, com muito respiro, inspirado em galerias de arte.
 - Componentes pequenos, com uma responsabilidade cada. Manter o padrão de export dos componentes já existentes.
-- Toda chamada de API fica em src/services/artApi.js. Componentes e hooks usam as funções de lá.
+- Toda chamada de API fica em src/services/artApi.js. Componentes e hooks usam as funções de lá e recebem obras no formato normalizado da seção 4.
+- As requisições à API são GET simples, sem cabeçalhos personalizados (sem Content-Type), para funcionarem sem preflight de CORS.
+- URLs de lista (searchArtworks, getTotal, getRandomArtworks) usam BASE_URL mais /artworks/ com barra final antes da query string. URLs de detalhe (getArtworkById) usam BASE_URL mais /artworks/{id}, sem barra final.
 - Imports relativos de arquivos .js usam a extensão.
-- A descrição da obra chega em HTML e é convertida com stripHtml antes de ser exibida como texto.
+- A descrição da obra passa por stripHtml antes de ser exibida como texto.
+- Imagens: usar sempre images.web (campo imageUrl da obra). O arquivo full é um TIFF de dezenas de MB e fica fora do app.
 - Estados a tratar sempre: carregando, erro (com botão "Tentar novamente"), sem resultados, obra sem imagem, campos vazios e requisição cancelada.
 - Acessibilidade: botões reais, foco visível, aria-labels, alt das imagens com getImageAlt, alvos de toque de pelo menos 44px, respeito a prefers-reduced-motion e ordem correta de títulos (um h1, no Hero).
-- Imagens com loading="lazy" (exceto a principal do Hero), decoding="async" e espaço reservado com aspect-ratio ou width e height.
+- Imagens com loading="lazy" (exceto a principal do Hero), decoding="async" e espaço reservado com aspect-ratio a partir de imageWidth e imageHeight. Como cada imagem pesa de 125 a 400 KB, o carregamento preguiçoso vale para todas as listas.
 - Lint com Oxlint (.oxlintrc.json, com regras de hooks do React). Ao terminar cada tarefa, rodar npm run lint e npm run build e informar o resultado de cada um.
 - Hooks: em efeitos, o setState acontece apenas dentro de callbacks assíncronos (then e catch), nunca no corpo síncrono do efeito. O estado de carregamento é derivado: guardar o resultado da última requisição junto com a chave dela (combinação dos parâmetros ou o id) e calcular loading comparando a chave guardada com a chave atual. Cada callback confere se a requisição foi cancelada antes de atualizar o estado. retry incrementa um contador que faz parte da chave.
+- Na Galeria, page volta para 1 nos mesmos handlers que alteram busca ou filtros (nunca em efeitos), e a lista atual continua visível, com indicação de carregamento, enquanto uma nova busca roda.
 - Contexto e hook ficam em arquivos separados (componente Provider em .jsx; createContext e o hook em .js), para o Oxlint não avisar sobre export misto.
 - Comentários curtos em português, apenas nas decisões não óbvias.
-- Na Galeria, page volta para 1 nos mesmos handlers que alteram busca ou filtros (nunca em efeitos), e a lista atual continua visível, com indicação de carregamento, enquanto uma nova busca roda.
 
-## 3. API do Art Institute of Chicago (verificado em testes reais)
+## 3. API do Cleveland Museum of Art (verificado em testes reais)
 
-Base: https://api.artic.edu/api/v1. Sem chave. CORS liberado para qualquer origem (access-control-allow-origin: *), inclusive o preflight de POST com Content-Type application/json. Limite de 60 requisições por minuto por IP. O status 429 indica limite excedido.
+Base: https://openaccess-api.clevelandart.org/api. Sem chave. CORS funciona no navegador (verificado com fetch a partir de localhost:5173). Limite de requisições não documentado; o app usa cache e trata o status 429.
 
-Buscas:
-- Todas as buscas usam POST em /artworks/search, com corpo JSON { fields, limit, page, query: { bool: { must: [...] } } }.
-- O campo q no nível superior do corpo apenas reordena por relevância e não filtra. A busca de texto real usa multi_match dentro de bool.must.
-- Filtros dentro de bool.must: exists no campo image_id (sempre), term is_public_domain true, term artwork_type_id com o id do tipo, e multi_match com o texto e os campos title^3, artist_title^3, subject_titles, category_titles, style_title, classification_title e medium_display.
-- Verificado: "landscape" devolve 1.580 obras, "monet" devolve 46 (todas de Claude Monet) e "qwertyuiop" devolve 0. O pagination.total reflete a busca quando o texto vai no multi_match.
-- Limite de paginação: posição inicial mais quantidade não pode passar de 1.000. Acima disso a API responde 403 "Invalid number of results", mesmo que pagination.total_pages sugira mais páginas. Com 12 obras por página, o máximo é a página 83 (996 obras).
+Endpoints:
+- GET /artworks/ devolve { info: { total, parameters }, data: [...] }. A barra final antes da query string é obrigatória nas URLs de lista.
+- GET /artworks/{id} devolve a obra completa em data, sem barra final.
+- /creators existe. Não existem /types nem /departments.
 
-Números do acervo (verificados):
-- 132.747 obras no total, 62.059 em domínio público e 59.059 em domínio público com imagem.
-- 45 tipos de obra em /artwork-types. Ids conhecidos: Painting 1, Photograph 2, Sculpture 3, Print 18, Vessel 23.
-- Totais por tema (domínio público com imagem): Paisagens 1.580, Retratos 3.259, Animais 902, Natureza-morta 676, Mitologia 346, Mar 194.
+Parâmetros de /artworks/:
+- q: busca de texto, que filtra de verdade.
+- has_image=1 e cc0=1: o app sempre usa os dois. Todas as obras com imagem são CC0 (41.536).
+- type: valor exato do tipo de obra (por exemplo Painting).
+- limit: máximo efetivo de 1000.
+- skip: sem limite prático (testado com 20000).
+- fields: lista de campos separados por vírgula. A API sempre acrescenta accession_number e has_conservation_images.
 
-Obras:
-- GET /artworks/{id}?fields=... devolve os detalhes. Campos usados na lista: id, title, artist_title, date_display, image_id, is_public_domain, artwork_type_title e thumbnail. Campos extras nos detalhes: artist_display, medium_display, dimensions, place_of_origin, credit_line, description, short_description, subject_titles, style_title e department_title.
-- thumbnail traz alt_text, width e height da imagem original.
-- image_id pode ser nulo. A busca do app já exige image_id.
-- description chega em HTML.
+Números verificados:
+- 68.771 obras no total e 41.536 com imagem em domínio público (CC0).
+- Por tipo, com imagem: Painting 3.955, Print 10.767, Drawing 1.995, Sculpture 1.977, Photograph 989 e Textile 2.137. Existem 62 tipos no total.
+- Buscas: monet 18, landscape 1.588 e qwertyuiop 0.
+- Temas (q): landscape 1.588, portrait 1.772, animals 775, still life 100, mythology 98 e sea 274.
 
-Imagens (IIIF): https://www.artic.edu/iiif/2/{image_id}/full/{largura},/0/default.jpg. Larguras usadas: 200, 400 e 843. As URLs abrem no navegador (verificado). O servidor de imagens bloqueia clientes automatizados fora do navegador, então imagens só se verificam no navegador.
+Campos da obra:
+- id, title, creation_date, type, technique, department, creditline, description (texto sem HTML nos casos vistos), url (página da obra no site do museu) e share_license_status (CC0).
+- culture é uma lista de textos. measurements é um texto com as medidas (dimensions é um objeto e não é usado).
+- creators é uma lista. creators[0].description traz o nome do artista, que pode vir com nacionalidade e datas entre parênteses.
+- images.web, images.print e images.full têm url, width, height e filesize. images.web tem até cerca de 900px e de 125 a 400 KB. Não existem miniaturas menores.
+- As imagens ficam em https://openaccess-cdn.clevelandart.org e carregam no navegador (verificado).
 
-Licenças:
-- Dados em CC0.
-- Imagens de obras em domínio público (is_public_domain true) podem ser usadas livremente. O filtro "Só domínio público" começa ligado.
-- O campo description é CC BY 4.0 e exige atribuição ao Art Institute of Chicago.
+Licenças: dados e imagens das obras com imagem são CC0. O rodapé dá crédito ao Cleveland Museum of Art.
 
 ## 4. Camada de dados
 
-src/services/artApi.js (fetch nativo, cache em memória de 10 minutos, chave formada por URL e corpo, suporte a signal):
+Formato normalizado de obra, usado por hooks, componentes e pela exposição:
+{ id, title, artist, date, type, imageUrl, imageWidth, imageHeight, technique, department, culture, dimensions, creditLine, description, museumUrl }
+- artist: nome de creators[0].description sem o trecho entre parênteses (nacionalidade e datas), ou '' quando não houver.
+- date: creation_date. culture: os itens da lista unidos por vírgula. dimensions: measurements. creditLine: creditline. museumUrl: url.
+- imageUrl, imageWidth e imageHeight vêm de images.web (null quando não houver).
+- Campos ausentes viram '' (texto) ou null (imagem).
+
+src/services/artApi.js (fetch nativo, GET simples, cache em memória de 10 minutos, suporte a signal):
+- Constantes: BASE_URL; LIST_FIELDS com id, title, creators, creation_date, type e images; DETAIL_FIELDS com os de LIST_FIELDS mais technique, department, culture, measurements, creditline, description e url.
 - Erros em português: 429 "Muitas requisições em pouco tempo. Aguarde um minuto e tente novamente."; outros status "Não foi possível carregar os dados (código X)."; falha de rede "Sem conexão com a internet. Verifique e tente novamente." O AbortError é repassado sem alteração.
-- searchArtworks({ query = '', page = 1, limit = 12, artworkTypeId = null, publicDomainOnly = true, signal }) devolve { artworks, pagination: { total, totalPages, currentPage, limit } }, com totalPages igual ao menor valor entre total_pages da API e floor(1000 / limit).
-- getArtworkById(id, { signal }) devolve a obra com os campos de detalhe.
-- getArtworkTypes({ signal }) devolve [{ id, title }] ordenado por title.
-- getTotal({ publicDomainOnly = false, signal }) devolve o total do acervo ou o total em domínio público.
-- getRandomArtworks({ count = 1, signal }) devolve obras de uma página aleatória entre as primeiras 1.000 (domínio público com imagem).
+- searchArtworks({ query = '', page = 1, limit = 12, type = null, signal }): GET /artworks/ com cc0=1, has_image=1, limit, skip igual a (page - 1) * limit, fields, q (quando query após trim não estiver vazio) e type (quando informado). Devolve { artworks (normalizadas), pagination: { total, totalPages: ceil(total / limit), currentPage, limit } }.
+- getArtworkById(id, { signal }): GET /artworks/{id}, sem barra final; devolve a obra normalizada com os campos de detalhe.
+- getTotal({ type = null, withImage = false, signal }): devolve info.total de GET /artworks/?limit=1&fields=id, acrescentando cc0=1 e has_image=1 quando withImage for verdadeiro e type quando informado.
+- getRandomArtworks({ count = 1, type = 'Painting', signal }): obtém o total com getTotal({ type, withImage: true }), sorteia um skip entre 0 e total menos count e devolve as obras normalizadas.
 
 src/utils:
-- imageUrl.js: getImageUrl(imageId, width = 400) e getImageSrcSet(imageId), com larguras 200, 400 e 843.
 - stripHtml.js: stripHtml(html) converte HTML em texto puro com DOMParser.
-- formatters.js: formatArtist ("Artista desconhecido"), formatDate ("Data não informada"), formatField ("Não informado"), formatNumber (pt-BR) e getImageAlt(artwork).
+- formatters.js: formatArtist ("Artista desconhecido"), formatDate ("Data não informada"), formatField ("Não informado"), formatNumber (pt-BR) e getImageAlt(artwork), que devolve "título, artista" (só o título quando não houver artista).
 
 src/constants:
 - themes.js: THEMES com { id, label, query }: Paisagens (landscape), Retratos (portrait), Animais (animals), Natureza-morta (still life), Mitologia (mythology) e Mar (sea).
-- artworkTypes.js: FEATURED_TYPES com { title, label }: Painting (Pintura), Print (Gravura), Drawing and Watercolor (Desenho e aquarela), Sculpture (Escultura), Photograph (Fotografia) e Textile (Têxtil).
+- artworkTypes.js: FEATURED_TYPES com { value, label }: Painting (Pintura), Print (Gravura), Drawing (Desenho), Sculpture (Escultura), Photograph (Fotografia) e Textile (Têxtil).
 
 src/hooks:
 - useDebounce(value, delay = 400).
-- useArtworks({ query, page, artworkTypeId, publicDomainOnly, append = false}) devolve { artworks, pagination, loading, error, retry }. Cancela a requisição anterior com AbortController e ignora o erro de cancelamento. A lista reinicia quando query, artworkTypeId ou publicDomainOnly mudam. Com append verdadeiro e page maior que 1, acrescenta as obras novas sem duplicar ids e mantém a lista atual visível durante o carregamento.
-- useArtworkDetails(id) devolve { artwork, loading, error, retry }. Com id nulo, não busca.
-- useStats() devolve { totalArtworks, totalPublicDomain, totalTypes, loading, error }.
+- useArtworks({ query, page, type, append = false }) devolve { artworks, pagination, loading, error, retry }. Cancela a requisição anterior com AbortController e ignora o erro de cancelamento. A lista reinicia quando query ou type mudam. Com append verdadeiro e page maior que 1, acrescenta as obras novas sem duplicar ids e mantém a lista atual visível durante o carregamento. error é null enquanto loading for verdadeiro.
+- useArtworkDetails(id) devolve { artwork, loading, error, retry }, com artwork e error nulos enquanto carrega. Com id nulo, não busca.
+- useStats() devolve { totalArtworks, totalWithImage, totalPaintings, loading, error }, com getTotal sem filtro, getTotal({ withImage: true }) e getTotal({ type: 'Painting', withImage: true }).
 - useExhibition() lê o contexto da exposição.
 - useMediaQuery(query) devolve true ou false e reage a mudanças com matchMedia.
 
 Estado da exposição:
 - src/context/exhibitionContext.js cria e exporta o contexto com createContext.
-- src/context/ExhibitionContext.jsx exporta ExhibitionProvider. O estado tem title (texto) e items (lista com id, title, artist_title, date_display, image_id e alt da imagem). Ações: toggle(artwork), remove(id), clear(), setTitle(text) e isInExhibition(id), além de count. O estado inicial é lido do localStorage (chave "vernissage:exhibition") por um inicializador do useState, e um useEffect grava a cada mudança. Toda leitura e escrita usa try/catch, e a leitura valida o formato e ignora conteúdo corrompido.
+- src/context/ExhibitionContext.jsx exporta ExhibitionProvider. O estado tem title (texto) e items (lista com id, title, artist, date, imageUrl e alt). Ações: toggle(artwork), remove(id), clear(), setTitle(text) e isInExhibition(id), além de count. O estado inicial é lido do localStorage (chave "vernissage:exhibition") por um inicializador do useState, e um useEffect grava a cada mudança. Toda leitura e escrita usa try/catch. A leitura considera um item válido quando id é inteiro e title é texto, mantém a primeira ocorrência de cada id e ignora conteúdo corrompido.
 - src/hooks/useExhibition.js exporta useExhibition, que lança um erro claro fora do Provider.
 - main.jsx envolve o App com o ExhibitionProvider.
 
@@ -134,6 +147,7 @@ Padrões visuais:
 - Cabeçalho de seção (SectionHeader): rótulo pequeno acima, título em caixa alta e linha fina de 1px na cor de borda abaixo.
 - Botão primário: pílula grafite com texto claro e seta à direita, hover em acento.
 - Botão secundário: retangular, contorno de 1px grafite, hover com fundo grafite e texto claro.
+- Links do Header e botões sem sublinhado; os links do menu ganham sublinhado apenas no hover e no foco.
 - Imagens com raio de 2px, mantendo a proporção original da obra, sem recorte.
 - Legenda de plaqueta abaixo das imagens: título, artista e ano.
 - Chips arredondados com borda de 1px. O ativo fica preenchido em acento.
@@ -181,9 +195,9 @@ Desktop:
 | Dica: o acervo é em inglês. Experimente: Monet, landscape, portrait.         |
 |                                                                              |
 | +----------------------------------+                                         |
-| |                                  |     Explore o acervo do Art Institute   |
-| |                                  |     of Chicago e monte a sua própria    |
-| |        # OBRA PRINCIPAL          |     exposição.                          |
+| |                                  |     Explore o acervo do Cleveland       |
+| |                                  |     Museum of Art e monte a sua         |
+| |        # OBRA PRINCIPAL          |     própria exposição.                  |
 | |        (aleatória da API)        |                                         |
 | |                                  |     [Surpreenda-me ->]                  |
 | +----------------------------------+                                         |
@@ -204,13 +218,15 @@ Celular:
 | +--------------------------------+ |
 | Título, Artista, ano               |
 |                                    |
-| Explore o acervo do Art Institute  |
-| of Chicago e monte a sua exposição.|
+| Explore o acervo do Cleveland      |
+| Museum of Art e monte a sua        |
+| própria exposição.                 |
 | [Surpreenda-me ->]                 |
 +------------------------------------+
 ```
-- Fundo grafite, texto claro, legenda em itálico. O título é o único h1 da página.
-- A obra vem de getRandomArtworks({ count: 2 }): uma principal e uma pequena. A pequena some no celular.
+- Fundo grafite, texto claro, legenda em itálico. O título é o único h1 da página e cabe em 3 linhas no desktop.
+- O campo de busca e o botão "Buscar" ficam lado a lado, com espaço entre eles. O botão é uma pílula clara sobre o fundo grafite.
+- A obra vem de getRandomArtworks({ count: 2 }), que sorteia entre as pinturas: uma principal e uma pequena. A pequena some no celular.
 - "Surpreenda-me" busca outra obra aleatória, atualiza a principal e abre o modal com ela.
 - A busca do hero envia o termo para a Galeria (handleSearch) e rola até ela.
 
@@ -218,12 +234,12 @@ Celular:
 
 ```
 +------------------------------------------------------------------------------+
-|   132.747              45                 62.059                             |
-|   obras no acervo      tipos de obra      em domínio público                 |
+|   68.771               41.536                          3.955                 |
+|   obras no acervo      com imagem em domínio público   pinturas              |
 +------------------------------------------------------------------------------+
 ```
 - Fundo off-white com linha fina em cima e embaixo. Números em Inter 300 de 48px, legenda em 13px na cor secundária.
-- Os valores vêm de useStats (os números acima são exemplos). Enquanto carrega, mostrar "..." e, em caso de falha, um traço.
+- Os valores vêm de useStats (totalArtworks, totalWithImage e totalPaintings). Enquanto carrega, mostrar "..." e, em caso de falha, um traço.
 - Celular: três colunas compactas com número menor.
 
 ### Seção 4: Explorar por tema
@@ -243,7 +259,7 @@ Celular:
 +------------------------------------------------------------------------------+
 ```
 - Temas de THEMES. Cards altos (proporção 3:4) com imagem de fundo e o nome do tema na base, sobre um escurecimento leve.
-- A imagem de cada tema vem de searchArtworks com o query do tema, limit 1 e domínio público. Sem resultado ou com falha, usar o fundo var(--color-band).
+- A imagem de cada tema vem de searchArtworks com o query do tema e limit 1: primeiro com type Painting e, sem resultado, sem o type. Sem resultado ou com falha, usar o fundo var(--color-band).
 - A última imagem aparece cortada pela borda direita da tela. Faixa horizontal com scroll-snap.
 - O clique aplica o tema como busca (handleSelectTheme) e rola até a Galeria.
 - Celular: cards com 70% da largura, rolagem horizontal e sem as setas.
@@ -277,8 +293,8 @@ Desktop:
 | ---------------------------------------------------------------------------- |
 |                                                                              |
 | (Buscar...)                                                                  |
-| [Todos] [Pintura] [Gravura] [Desenho e aquarela] ...   [x] Só domínio público |
-| [Tema: Mar x]                                              1.580 resultados  |
+| [Todos] [Pintura] [Gravura] [Desenho] [Escultura] [Fotografia] [Têxtil]      |
+| [Tema: Paisagens x]                                        1.588 resultados  |
 |                                                                              |
 | +--------+  +--------+  +--------+  +--------+                               |
 | |   (♡)  |  |   (♡)  |  |   (♡)  |  |   (♡)  |                               |
@@ -287,7 +303,7 @@ Desktop:
 | Título      Título      Título      Título                                   |
 | Artista,ano Artista,ano Artista,ano Artista,ano                              |
 |                                                                              |
-|                    [<]  1  2  3  ...  83  [>]                                |
+|                    [<]  1  2  3  ...  133  [>]                               |
 +------------------------------------------------------------------------------+
 ```
 Celular:
@@ -296,8 +312,7 @@ Celular:
 | GALERIA                            |
 | (Buscar...)                        |
 | [Todos][Pintura][Gravura][Dese >   |   rolagem horizontal
-| [x] Só domínio público             |
-| 1.580 resultados                   |
+| 1.588 resultados                   |
 |                                    |
 | +-----------+  +-----------+       |
 | |   (♡)     |  |   (♡)     |       |
@@ -309,11 +324,11 @@ Celular:
 | [ Carregar mais ]                  |
 +------------------------------------+
 ```
-- Controles: busca, chips de tipo de obra (FEATURED_TYPES encontrados na API, mais "Todos"), alternância "Só domínio público" (começa ligada) e o chip removível do tema ativo, por exemplo [Tema: Mar x].
+- Controles: busca, chips de tipo de obra (Todos e os itens de FEATURED_TYPES, com o rótulo em português e o value enviado à API) e o chip removível do tema ativo, por exemplo [Tema: Paisagens x].
 - A busca filtra ao digitar, com useDebounce de 400ms. A página volta para 1 quando busca ou filtro mudam.
-- Contagem: "{formatNumber(total)} resultados". Quando total for maior que totalPages vezes limit, mostrar também o aviso "Mostrando as primeiras {totalPages * limit} obras. Use a busca ou os filtros para refinar."
+- Contagem: "{formatNumber(total)} resultados".
 - Grade em colunas CSS estilo mural: 2 no celular, 3 no tablet e 4 no desktop. Cards com break-inside: avoid.
-- A imagem mantém a proporção original (aspect-ratio a partir de thumbnail.width e thumbnail.height).
+- A imagem (imageUrl) mantém a proporção original (aspect-ratio a partir de imageWidth e imageHeight).
 - O coração fica no canto superior direito da imagem, com sombra leve. Vazio com borda branca, preenchido em acento quando a obra está na exposição. O coração e o botão da imagem são elementos irmãos.
 - Hover no card: a imagem escurece e aparece "Ver detalhes" no centro. O clique abre o modal.
 - Tablet e desktop usam Pagination numerada. O celular usa o botão "Carregar mais", que acrescenta a próxima página (useArtworks com append verdadeiro).
@@ -350,8 +365,6 @@ Desktop:
 |                                     ---------------------------              |
 |                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~              |
 |                                     Ver no site do museu                     |
-|                                     Descrição: Art Institute of Chicago,     |
-|                                     licença CC BY 4.0                        |
 |                                     [Adicionar à minha exposição ->]         |
 +------------------------------------------------------------------------------+
 ```
@@ -372,8 +385,8 @@ Celular (tela cheia):
 ```
 - Renderizado com createPortal em document.body, com role="dialog", aria-modal="true" e aria-labelledby apontando para o título.
 - Fecha com ESC, clique no fundo e botão X. Ao abrir, o foco vai para o botão de fechar, o Tab circula apenas dentro do modal e, ao fechar, o foco volta ao elemento que o abriu. A rolagem do body fica travada enquanto aberto.
-- Imagem grande com getImageUrl(id, 843). Campos vazios mostram "Não informado".
-- Descrição com stripHtml (usar short_description quando description estiver vazia). Link "Ver no site do museu" para https://www.artic.edu/artworks/{id}.
+- Imagem grande com imageUrl. Campos vazios mostram "Não informado". O chip do tipo usa o rótulo em português de FEATURED_TYPES quando existir e, senão, o valor original de type.
+- Origem usa culture. Descrição com stripHtml. Link "Ver no site do museu" para museumUrl.
 - O botão de exposição alterna entre "Adicionar à minha exposição" (primary) e "Remover da exposição" (outline).
 - Busca os detalhes com useArtworkDetails ao abrir, com skeleton nos campos enquanto carrega e ErrorMessage com retry em caso de erro.
 
@@ -421,19 +434,18 @@ Desktop:
       (curva grafite no topo)
 +------------------------------------------------------------------------------+
 | VERNISSAGE                 Navegação          Sobre os dados                 |
-| ~~~~~~~~~~~~~~~~~~         Explorar           Art Institute of Chicago       |
-| ~~~~~~~~~~~~~~~~~~         Galeria            API pública                    |
-|                            Exposição          Dados em CC0. Imagens em       |
-|                                               domínio público quando         |
-|                                               indicado. Descrições em        |
-|                                               CC BY 4.0.                     |
+| ~~~~~~~~~~~~~~~~~~         Explorar           Cleveland Museum of Art        |
+| ~~~~~~~~~~~~~~~~~~         Galeria            API aberta                     |
+|                            Exposição          Dados e imagens em domínio     |
+|                                               público (CC0), cortesia do     |
+|                                               Cleveland Museum of Art.       |
 |                                                                              |
 | Projeto acadêmico   |   GitHub   |   Feito com React + Vite                  |
 +------------------------------------------------------------------------------+
 ```
 - Fundo grafite, texto off-white, curva no topo (border-radius grande nos cantos superiores).
-- Frase da marca: "Explore o acervo do Art Institute of Chicago e monte a sua própria exposição."
-- Links: Art Institute of Chicago (https://www.artic.edu), API pública (https://api.artic.edu/docs) e GitHub (https://github.com/matheusdias20/vernissage). Links externos com target="_blank" e rel="noopener noreferrer".
+- Frase da marca: "Explore o acervo do Cleveland Museum of Art e monte a sua própria exposição."
+- Links: Cleveland Museum of Art (https://www.clevelandart.org), API aberta (https://openaccess-api.clevelandart.org) e GitHub (https://github.com/matheusdias20/vernissage). Links externos com target="_blank" e rel="noopener noreferrer".
 - Celular: colunas empilhadas.
 
 ## 8. Contratos dos componentes
@@ -443,7 +455,7 @@ Componentes de src/components/ui (sem lógica de API):
 - Button (variant 'primary' | 'outline', onClick, children, icon 'arrow' ou nenhum, type, disabled, inverted): altura mínima de 44px.
 - Chip (label, active, onClick, removable, onRemove): active usa aria-pressed; o botão "x" tem aria-label "Remover filtro {label}".
 - Pagination (page, totalPages, onChange): nav com aria-label "Paginação", no máximo 5 números visíveis com reticências, aria-current="page" na atual, devolve null quando totalPages for 1 ou menor.
-- Loading (count = 8): esqueletos em colunas (2, 3 e 4) com animação de pulso, role="status" e texto "Carregando obras" só para leitores de tela.
+- Loading (count = 8): esqueletos em colunas (2, 3 e 4) com alturas variadas e animação de pulso, role="status" e texto "Carregando obras" só para leitores de tela.
 - EmptyState (title, message, suggestions = [], onSuggestionClick): ícone de moldura, texto e chips de sugestão.
 - ErrorMessage (message, onRetry): ícone de alerta, role="alert" e botão outline "Tentar novamente".
 
@@ -454,8 +466,8 @@ Layout e seções:
 - StatsStrip: usa useStats.
 - ThemeCarousel (onSelectTheme) e ThemeCard (theme, onSelect): o card é um botão com aria-label "Explorar tema {label}".
 - StepsList.
-- Gallery (query, themeLabel, onQueryChange, onClearTheme, onOpenArtwork): estado local page, artworkTypeId (null) e publicDomainOnly (true); usa useMediaQuery('(max-width: 640px)') para decidir o append.
-- Filters (artworkTypeId, onTypeChange, publicDomainOnly, onPublicDomainChange): busca os tipos com getArtworkTypes; se falhar, mostra apenas "Todos".
+- Gallery (query, themeLabel, onQueryChange, onClearTheme, onOpenArtwork): estado local page e type (null); usa useMediaQuery('(max-width: 640px)') para decidir o append.
+- Filters (type, onTypeChange): chips fixos vindos de FEATURED_TYPES, mais "Todos" (type null).
 - ArtworkGrid (artworks, onOpen) e ArtworkCard (artwork, onOpen).
 - ArtworkModal (artworkId, onClose).
 - ExhibitionPanel (onOpenArtwork) e Footer.
@@ -473,7 +485,7 @@ src/
 ├── context/         exhibitionContext.js, ExhibitionContext.jsx
 ├── hooks/           useArtworks, useArtworkDetails, useDebounce, useStats, useExhibition, useMediaQuery
 ├── services/        artApi.js
-├── utils/           imageUrl.js, stripHtml.js, formatters.js
+├── utils/           stripHtml.js, formatters.js
 ├── constants/       themes.js, artworkTypes.js
 ├── styles/          variables.css, reset.css, global.css
 ├── App.jsx
@@ -486,11 +498,11 @@ src/
 - [x] Fase 2: repositório no GitHub
 - [x] Fase 3: estrutura de pastas e componentes base
 - [x] Fase 4: variáveis, fonte Inter e estilos globais
-- [x] Fase 5.1: serviço da API, utilitários e constantes
-- [x] Fase 5.2: hooks de dados (useDebounce, useArtworks, useArtworkDetails, useStats)
-- [x] Fase 5.3: estado da exposição (contexto, Provider e useExhibition)
+- [x] Fase 5: camada de dados com a API do Art Institute (será substituída na migração)
 - [x] Fase 6: componentes de ui
-- [ ] Fase 7.1: Header e Hero
+- [x] Fase 7.1: Header e Hero (o Hero será religado à nova API na migração)
+- [x] Migração para a API do Cleveland Museum of Art: camada de dados (artApi, formatters, imageUrl removido, artworkTypes, hooks e contexto da exposição)
+- [x] Migração para a API do Cleveland Museum of Art: Hero religado (imageUrl/imageWidth/imageHeight, formatters com artist/date, SearchBar variant dark e grid de 12 colunas no desktop)
 - [ ] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
 - [ ] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
 - [ ] Fase 7.4: ArtworkModal

@@ -3,17 +3,11 @@ import { searchArtworks } from '../services/artApi.js'
 
 const INITIAL_PAGINATION = { total: 0, totalPages: 0, currentPage: 1, limit: 12 }
 
-function buildRequestKey({ query, page, artworkTypeId, publicDomainOnly, retryToken }) {
-  return JSON.stringify({ query, page, artworkTypeId, publicDomainOnly, retryToken })
+function buildRequestKey({ query, page, type, retryToken }) {
+  return JSON.stringify({ query, page, type, retryToken })
 }
 
-export function useArtworks({
-  query = '',
-  page = 1,
-  artworkTypeId = null,
-  publicDomainOnly = true,
-  append = false,
-} = {}) {
+export function useArtworks({ query = '', page = 1, type = null, append = false } = {}) {
   const [artworks, setArtworks] = useState([])
   const [pagination, setPagination] = useState(INITIAL_PAGINATION)
   const [error, setError] = useState(null)
@@ -25,19 +19,19 @@ export function useArtworks({
 
   // loading é derivado: verdadeiro enquanto a chave da última requisição
   // resolvida (sucesso ou erro) não corresponder aos parâmetros atuais
-  const requestKey = buildRequestKey({ query, page, artworkTypeId, publicDomainOnly, retryToken })
+  const requestKey = buildRequestKey({ query, page, type, retryToken })
   const loading = resolvedKey !== requestKey
 
   useEffect(() => {
-    const key = buildRequestKey({ query, page, artworkTypeId, publicDomainOnly, retryToken })
-    const filtersKey = JSON.stringify({ query, artworkTypeId, publicDomainOnly })
+    const key = buildRequestKey({ query, page, type, retryToken })
+    const filtersKey = JSON.stringify({ query, type })
     const filtersChanged = filtersKeyRef.current !== null && filtersKeyRef.current !== filtersKey
     filtersKeyRef.current = filtersKey
     const shouldAppend = append && page > 1 && !filtersChanged
 
     const controller = new AbortController()
 
-    searchArtworks({ query, page, artworkTypeId, publicDomainOnly, signal: controller.signal })
+    searchArtworks({ query, page, type, signal: controller.signal })
       .then((result) => {
         if (controller.signal.aborted) return
         setArtworks((prev) => {
@@ -56,7 +50,7 @@ export function useArtworks({
       })
 
     return () => controller.abort()
-  }, [query, page, artworkTypeId, publicDomainOnly, append, retryToken])
+  }, [query, page, type, append, retryToken])
 
   const retry = useCallback(() => setRetryToken((token) => token + 1), [])
 

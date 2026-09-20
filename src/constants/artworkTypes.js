@@ -1,8 +1,8 @@
 export const FEATURED_TYPES = [
-  { title: 'Painting', label: 'Pintura' },
-  { title: 'Print', label: 'Gravura' },
-  { title: 'Drawing and Watercolor', label: 'Desenho e aquarela' },
-  { title: 'Sculpture', label: 'Escultura' },
-  { title: 'Photograph', label: 'Fotografia' },
-  { title: 'Textile', label: 'Têxtil' },
+  { value: 'Painting', label: 'Pintura' },
+  { value: 'Print', label: 'Gravura' },
+  { value: 'Drawing', label: 'Desenho' },
+  { value: 'Sculpture', label: 'Escultura' },
+  { value: 'Photograph', label: 'Fotografia' },
+  { value: 'Textile', label: 'Têxtil' },
 ]

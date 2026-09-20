@@ -54,18 +54,8 @@ export function ExhibitionProvider({ children }) {
       if (prev.some((item) => item.id === artwork.id)) {
         return prev.filter((item) => item.id !== artwork.id)
       }
-      const { id, title: artworkTitle, artist_title: artistTitle, date_display: dateDisplay, image_id: imageId } = artwork
-      return [
-        ...prev,
-        {
-          id,
-          title: artworkTitle,
-          artist_title: artistTitle,
-          date_display: dateDisplay,
-          image_id: imageId,
-          alt: getImageAlt(artwork),
-        },
-      ]
+      const { id, title, artist, date, imageUrl } = artwork
+      return [...prev, { id, title, artist, date, imageUrl, alt: getImageAlt(artwork) }]
     })
   }, [])
 

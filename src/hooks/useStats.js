@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { getTotal, getArtworkTypes } from '../services/artApi.js'
+import { getTotal } from '../services/artApi.js'
 
 const REQUEST_KEY = 'stats'
 
 export function useStats() {
   const [totalArtworks, setTotalArtworks] = useState(null)
-  const [totalPublicDomain, setTotalPublicDomain] = useState(null)
-  const [totalTypes, setTotalTypes] = useState(null)
+  const [totalWithImage, setTotalWithImage] = useState(null)
+  const [totalPaintings, setTotalPaintings] = useState(null)
   const [error, setError] = useState(null)
   const [resolvedKey, setResolvedKey] = useState(null)
 
@@ -18,22 +18,22 @@ export function useStats() {
 
     Promise.all([
       getTotal({ signal: controller.signal }),
-      getTotal({ publicDomainOnly: true, signal: controller.signal }),
-      getArtworkTypes({ signal: controller.signal }),
+      getTotal({ withImage: true, signal: controller.signal }),
+      getTotal({ type: 'Painting', withImage: true, signal: controller.signal }),
     ])
-      .then(([total, totalPublic, types]) => {
+      .then(([total, totalImage, totalPaint]) => {
         if (controller.signal.aborted) return
         setTotalArtworks(total)
-        setTotalPublicDomain(totalPublic)
-        setTotalTypes(types.length)
+        setTotalWithImage(totalImage)
+        setTotalPaintings(totalPaint)
         setError(null)
         setResolvedKey(REQUEST_KEY)
       })
       .catch((err) => {
         if (controller.signal.aborted || err.name === 'AbortError') return
         setTotalArtworks(null)
-        setTotalPublicDomain(null)
-        setTotalTypes(null)
+        setTotalWithImage(null)
+        setTotalPaintings(null)
         setError(err.message)
         setResolvedKey(REQUEST_KEY)
       })
@@ -41,5 +41,5 @@ export function useStats() {
     return () => controller.abort()
   }, [])
 
-  return { totalArtworks, totalPublicDomain, totalTypes, loading, error }
+  return { totalArtworks, totalWithImage, totalPaintings, loading, error }
 }
