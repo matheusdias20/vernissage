@@ -1,1 +1,64 @@
-// Hook para buscar e paginar obras da galeria a partir dos filtros e do termo de busca
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { searchArtworks } from '../services/artApi.js'
+
+const INITIAL_PAGINATION = { total: 0, totalPages: 0, currentPage: 1, limit: 12 }
+
+function buildRequestKey({ query, page, artworkTypeId, publicDomainOnly, retryToken }) {
+  return JSON.stringify({ query, page, artworkTypeId, publicDomainOnly, retryToken })
+}
+
+export function useArtworks({
+  query = '',
+  page = 1,
+  artworkTypeId = null,
+  publicDomainOnly = true,
+  append = false,
+} = {}) {
+  const [artworks, setArtworks] = useState([])
+  const [pagination, setPagination] = useState(INITIAL_PAGINATION)
+  const [error, setError] = useState(null)
+  const [resolvedKey, setResolvedKey] = useState(null)
+  const [retryToken, setRetryToken] = useState(0)
+
+  // guarda os filtros da busca anterior para saber se a lista precisa ser reiniciada
+  const filtersKeyRef = useRef(null)
+
+  // loading é derivado: verdadeiro enquanto a chave da última requisição
+  // resolvida (sucesso ou erro) não corresponder aos parâmetros atuais
+  const requestKey = buildRequestKey({ query, page, artworkTypeId, publicDomainOnly, retryToken })
+  const loading = resolvedKey !== requestKey
+
+  useEffect(() => {
+    const key = buildRequestKey({ query, page, artworkTypeId, publicDomainOnly, retryToken })
+    const filtersKey = JSON.stringify({ query, artworkTypeId, publicDomainOnly })
+    const filtersChanged = filtersKeyRef.current !== null && filtersKeyRef.current !== filtersKey
+    filtersKeyRef.current = filtersKey
+    const shouldAppend = append && page > 1 && !filtersChanged
+
+    const controller = new AbortController()
+
+    searchArtworks({ query, page, artworkTypeId, publicDomainOnly, signal: controller.signal })
+      .then((result) => {
+        if (controller.signal.aborted) return
+        setArtworks((prev) => {
+          if (!shouldAppend) return result.artworks
+          const existingIds = new Set(prev.map((art) => art.id))
+          return [...prev, ...result.artworks.filter((art) => !existingIds.has(art.id))]
+        })
+        setPagination(result.pagination)
+        setError(null)
+        setResolvedKey(key)
+      })
+      .catch((err) => {
+        if (controller.signal.aborted || err.name === 'AbortError') return
+        setError(err.message)
+        setResolvedKey(key)
+      })
+
+    return () => controller.abort()
+  }, [query, page, artworkTypeId, publicDomainOnly, append, retryToken])
+
+  const retry = useCallback(() => setRetryToken((token) => token + 1), [])
+
+  return { artworks, pagination, loading, error: loading ? null : error, retry }
+}
