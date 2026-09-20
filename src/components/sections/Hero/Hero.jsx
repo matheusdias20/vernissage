@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getRandomArtworks } from '../../../services/artApi.js'
 import { formatArtist, formatDate, formatField, getImageAlt } from '../../../utils/formatters.js'
 import Button from '../../ui/Button/Button'
@@ -19,6 +19,12 @@ function Hero({ onSearch, onOpenArtwork }) {
   const [resolvedKey, setResolvedKey] = useState(null)
   const [retryToken, setRetryToken] = useState(0)
   const [surpriseLoading, setSurpriseLoading] = useState(false)
+  const surpriseControllerRef = useRef(null)
+
+  // cancela a busca de "Surpreenda-me" em andamento se o Hero desmontar
+  useEffect(() => {
+    return () => surpriseControllerRef.current?.abort()
+  }, [])
 
   // loading é derivado: verdadeiro até a busca do retryToken atual ser resolvida
   const loading = resolvedKey !== retryToken
@@ -49,17 +55,24 @@ function Hero({ onSearch, onOpenArtwork }) {
   }
 
   async function handleSurprise() {
+    // cancela o clique anterior ainda em andamento, para o último clique sempre vencer
+    surpriseControllerRef.current?.abort()
+    const controller = new AbortController()
+    surpriseControllerRef.current = controller
+
     setSurpriseLoading(true)
     try {
-      const [artwork] = await getRandomArtworks({ count: 1 })
+      const [artwork] = await getRandomArtworks({ count: 1, signal: controller.signal })
+      if (controller.signal.aborted) return
       if (artwork) {
         setMainArtwork(artwork)
         onOpenArtwork(artwork.id)
       }
-    } catch {
+    } catch (err) {
+      if (err.name === 'AbortError') return
       // mantém a obra principal atual se a nova busca aleatória falhar
     } finally {
-      setSurpriseLoading(false)
+      if (!controller.signal.aborted) setSurpriseLoading(false)
     }
   }
 

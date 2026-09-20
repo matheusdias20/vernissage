@@ -31,11 +31,11 @@ Vernissage é um painel interativo em React + Vite que consome a API aberta do C
 - Imagens: usar sempre images.web (campo imageUrl da obra). O arquivo full é um TIFF de dezenas de MB e fica fora do app.
 - Estados a tratar sempre: carregando, erro (com botão "Tentar novamente"), sem resultados, obra sem imagem, campos vazios e requisição cancelada.
 - Acessibilidade: botões reais, foco visível, aria-labels, alt das imagens com getImageAlt, alvos de toque de pelo menos 44px, respeito a prefers-reduced-motion e ordem correta de títulos (um h1, no Hero).
-- Imagens com loading="lazy" (exceto a principal do Hero), decoding="async" e espaço reservado com aspect-ratio a partir de imageWidth e imageHeight. Como cada imagem pesa de 125 a 400 KB, o carregamento preguiçoso vale para todas as listas.
-- Lint com Oxlint (.oxlintrc.json, com regras de hooks do React). Ao terminar cada tarefa, rodar npm run lint e npm run build e informar o resultado de cada um.
+- Imagens com loading="lazy" (exceto a imagem principal do Hero e a imagem do ArtworkModal, que aparecem imediatamente ao abrir), decoding="async" e espaço reservado com aspect-ratio a partir de imageWidth e imageHeight. Como cada imagem pesa de 125 a 400 KB, o carregamento preguiçoso vale para todas as listas.
+- Lint com ESLint (eslint.config.js, com regras de hooks do React). Ao terminar cada tarefa, rodar npm run lint e npm run build e informar o resultado de cada um.
 - Hooks: em efeitos, o setState acontece apenas dentro de callbacks assíncronos (then e catch), nunca no corpo síncrono do efeito. O estado de carregamento é derivado: guardar o resultado da última requisição junto com a chave dela (combinação dos parâmetros ou o id) e calcular loading comparando a chave guardada com a chave atual. Cada callback confere se a requisição foi cancelada antes de atualizar o estado. retry incrementa um contador que faz parte da chave.
 - Na Galeria, page volta para 1 nos mesmos handlers que alteram busca ou filtros (nunca em efeitos), e a lista atual continua visível, com indicação de carregamento, enquanto uma nova busca roda.
-- Contexto e hook ficam em arquivos separados (componente Provider em .jsx; createContext e o hook em .js), para o Oxlint não avisar sobre export misto.
+- Contexto e hook ficam em arquivos separados (componente Provider em .jsx; createContext e o hook em .js), para o ESLint não avisar sobre export misto.
 - Comentários curtos em português, apenas nas decisões não óbvias.
 
 ## 3. API do Cleveland Museum of Art (verificado em testes reais)
@@ -387,6 +387,7 @@ Celular (tela cheia):
 - Fecha com ESC, clique no fundo e botão X. Ao abrir, o foco vai para o botão de fechar, o Tab circula apenas dentro do modal e, ao fechar, o foco volta ao elemento que o abriu. A rolagem do body fica travada enquanto aberto.
 - Imagem grande com imageUrl. Campos vazios mostram "Não informado". O chip do tipo usa o rótulo em português de FEATURED_TYPES quando existir e, senão, o valor original de type.
 - Origem usa culture. Descrição com stripHtml. Link "Ver no site do museu" para museumUrl.
+- Os fatos (Data, Técnica, Dimensões, Origem, Créditos) aparecem em lista vertical em qualquer largura, e não na linha horizontal "Data | Técnica | ..." do wireframe do celular.
 - O botão de exposição alterna entre "Adicionar à minha exposição" (primary) e "Remover da exposição" (outline).
 - Busca os detalhes com useArtworkDetails ao abrir, com skeleton nos campos enquanto carrega e ErrorMessage com retry em caso de erro.
 
@@ -515,11 +516,11 @@ src/
 
 Esta é uma lista de pendências: os itens só são implementados quando uma tarefa pedir.
 
-- [ ] ThemeCarousel: o primeiro card começa alinhado ao mesmo x do título e da linha do SectionHeader, em qualquer largura de tela, e a faixa continua rolando até a borda direita.
-- [ ] StatsStrip: em caso de erro, mostrar "n/d" nos números. Trocar o caractere de travessão longo (U+2014) por vírgula, dois-pontos, parênteses ou "n/d" nos textos de src e de docs/contexto.md.
+- [x] ThemeCarousel: o primeiro card começa alinhado ao mesmo x do título e da linha do SectionHeader, em qualquer largura de tela, e a faixa continua rolando até a borda direita.
+- [x] StatsStrip: em caso de erro, mostrar "n/d" nos números. Trocar o caractere de travessão longo (U+2014) por vírgula, dois-pontos, parênteses ou "n/d" nos textos de src e de docs/contexto.md.
 - [ ] Hero: o estado de erro da obra principal usa uma versão escura (fundo var(--color-dark) e texto claro) no lugar do bloco branco.
 - [ ] Hero: reservar a altura da imagem principal com aspect-ratio (mantendo max-height de 70vh) para a página não "pular" quando a imagem carrega.
 - [ ] ThemeCard: capas mais fiéis, com uma obra escolhida por tema (id fixo em THEMES) e a busca atual como alternativa.
 - [ ] Mensagem de erro de rede em artApi.js: trocar "Sem conexão com a internet..." por "Não foi possível falar com o servidor do museu. Verifique sua conexão e tente novamente.", porque a falha também acontece por CORS ou servidor fora do ar.
-- [ ] ArtworkCard: coração com sombra ou contraste em obras claras e área de toque de 44px (área clicável ampliada, ícone do mesmo tamanho). Conferir o alvo de toque do título.
+- [x] ArtworkCard: coração com sombra ou contraste em obras claras e área de toque de 44px (área clicável ampliada, ícone do mesmo tamanho). Conferir o alvo de toque do título.
 - [ ] useMediaQuery e o monitoramento de rolagem do Header: usar useSyncExternalStore no lugar de estado com efeito.

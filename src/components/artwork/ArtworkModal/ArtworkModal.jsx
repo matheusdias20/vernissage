@@ -39,6 +39,22 @@ function typeLabel(type) {
   return featured ? featured.label : type
 }
 
+function FrameIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false">
+      <rect x="4" y="6" width="32" height="28" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="13" cy="15" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M4 28L14 20L21 26L28 18L36 28"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 // esqueleto decorativo enquanto os detalhes carregam; o h2 acessível fica fora daqui
 function FieldsSkeleton() {
   return (
@@ -118,6 +134,7 @@ function ArtworkModal({ artworkId, onClose }) {
   const inExhibition = artwork ? isInExhibition(artwork.id) : false
   const aspectRatio =
     artwork?.imageWidth && artwork?.imageHeight ? `${artwork.imageWidth} / ${artwork.imageHeight}` : undefined
+  const descriptionText = artwork ? stripHtml(artwork.description) : ''
 
   return createPortal(
     <div className={styles.backdrop} onClick={onClose}>
@@ -129,22 +146,29 @@ function ArtworkModal({ artworkId, onClose }) {
         aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" ref={closeButtonRef} className={styles.closeButton} aria-label="Fechar" onClick={onClose}>
+        <button type="button" ref={closeButtonRef} className={styles.closeButton} onClick={onClose}>
           <BackIcon />
-          <span className={styles.backLabel}>Voltar</span>
           <CloseIcon />
+          <span className={styles.backLabel}>Voltar</span>
+          <span className={styles.closeLabel}>Fechar</span>
         </button>
 
         <div className={styles.body}>
           <div className={styles.imageColumn}>
             {!loading && !error && artwork ? (
-              <img
-                src={artwork.imageUrl}
-                alt={getImageAlt(artwork)}
-                className={styles.image}
-                style={{ aspectRatio }}
-                decoding="async"
-              />
+              artwork.imageUrl ? (
+                <img
+                  src={artwork.imageUrl}
+                  alt={getImageAlt(artwork)}
+                  className={styles.image}
+                  style={{ aspectRatio }}
+                  decoding="async"
+                />
+              ) : (
+                <div className={styles.imagePlaceholder}>
+                  <FrameIcon />
+                </div>
+              )
             ) : (
               <div className={styles.imageSkeleton} aria-hidden="true" />
             )}
@@ -200,7 +224,7 @@ function ArtworkModal({ artworkId, onClose }) {
                   </div>
                 </dl>
 
-                {artwork.description && <p className={styles.description}>{stripHtml(artwork.description)}</p>}
+                {descriptionText && <p className={styles.description}>{descriptionText}</p>}
 
                 <a href={artwork.museumUrl} target="_blank" rel="noopener noreferrer" className={styles.museumLink}>
                   Ver no site do museu

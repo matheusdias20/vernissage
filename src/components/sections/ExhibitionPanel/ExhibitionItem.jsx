@@ -9,12 +9,34 @@ function CloseIcon() {
   )
 }
 
+function FrameIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 40 40" fill="none" aria-hidden="true" focusable="false">
+      <rect x="4" y="6" width="32" height="28" rx="2" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="13" cy="15" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M4 28L14 20L21 26L28 18L36 28"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function ExhibitionItem({ item, onOpen, onRemove }) {
   return (
     <div className={styles.item}>
       <div className={styles.media}>
         <button type="button" className={styles.imageButton} onClick={() => onOpen(item.id)}>
-          <img src={item.imageUrl} alt={item.alt} className={styles.image} loading="lazy" decoding="async" />
+          {item.imageUrl ? (
+            <img src={item.imageUrl} alt={item.alt} className={styles.image} loading="lazy" decoding="async" />
+          ) : (
+            <div className={styles.placeholder}>
+              <FrameIcon />
+            </div>
+          )}
         </button>
 
         <button

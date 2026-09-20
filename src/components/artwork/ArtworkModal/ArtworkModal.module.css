@@ -29,7 +29,8 @@
   }
 }
 
-/* botão único de fechar: no celular aparece como "Voltar" à esquerda, no desktop como X no canto */
+/* botão único de fechar: no celular mostra "Voltar", no desktop mostra "Fechar" (X + texto),
+   sempre com o nome acessível igual ao texto visível, sem aria-label fixo */
 .closeButton {
   display: flex;
   align-items: center;
@@ -53,16 +54,21 @@
   display: none;
 }
 
+.closeLabel {
+  display: none;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+}
+
 @media (min-width: 641px) {
   .closeButton {
     position: absolute;
     top: var(--space-3);
     right: var(--space-3);
     z-index: 1;
-    justify-content: center;
-    min-width: 44px;
-    padding: 0;
-    border-radius: var(--radius-md);
+    min-height: 44px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-pill);
     background-color: var(--color-surface);
   }
 
@@ -75,7 +81,8 @@
     display: none;
   }
 
-  .closeIcon {
+  .closeIcon,
+  .closeLabel {
     display: block;
   }
 }
@@ -132,6 +139,17 @@
   border-radius: var(--radius-sm);
   background-color: var(--color-border);
   animation: pulse 1.4s ease-in-out infinite;
+}
+
+.imagePlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-band);
+  color: var(--color-text-muted);
 }
 
 @keyframes pulse {
@@ -217,7 +235,9 @@
 }
 
 .museumLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-bottom: var(--space-5);
   font-size: var(--fs-small);
   font-weight: var(--fw-medium);
