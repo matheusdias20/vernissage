@@ -1,1 +1,80 @@
-/* Variáveis CSS globais: paleta, tipografia, espaçamentos e breakpoints do Vernissage */
+/*
+ * Variáveis CSS globais: paleta, tipografia, espaçamentos e breakpoints do Vernissage
+ *
+ * Breakpoints (abordagem mobile-first):
+ * - Celular: base, até 640px
+ * - Tablet:  @media (min-width: 641px)
+ * - Desktop: @media (min-width: 1025px)
+ *
+ * As variáveis abaixo que variam por breakpoint (--container-pad, --section-gap)
+ * são redefinidas dentro das media queries dos componentes, pois variáveis CSS
+ * não podem ser declaradas dentro de uma media query e lidas fora dela.
+ */
+
+:root {
+  /* Cores */
+  --color-bg: #F6F3EE;
+  --color-surface: #FFFFFF;
+  --color-text: #1C1B1A;
+  --color-text-muted: #6B665F;
+  --color-border: #E3DDD3;
+  --color-accent: #B4442B;
+  --color-accent-hover: #8F3420;
+  --color-dark: #1F1E1C;
+  --color-band: #EFE7DA;
+  --color-on-dark: #F6F3EE;
+  --color-on-dark-muted: rgba(246, 243, 238, 0.7);
+  --color-overlay: rgba(28, 27, 26, 0.55);
+
+  /* Tipografia */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fs-hero: clamp(2.5rem, 6vw, 4rem);
+  --fs-section: clamp(1.75rem, 3vw, 2rem);
+  --fs-stat: 3rem;
+  --fs-brand: 1.125rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-label: 0.8125rem;
+  --ls-brand: 0.3em;
+  --ls-title: 0.05em;
+  --ls-label: 0.1em;
+
+  /* Espaçamento e layout */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --container-max: 1200px;
+  --container-pad: 16px;
+  --section-gap: 56px;
+  --header-height: 64px;
+
+  /* Forma e movimento */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 3px rgba(28, 27, 26, 0.12);
+  --shadow-md: 0 8px 24px rgba(28, 27, 26, 0.16);
+  --transition: 200ms ease;
+}
+
+@media (min-width: 641px) {
+  :root {
+    --container-pad: 24px;
+  }
+}
+
+@media (min-width: 1025px) {
+  :root {
+    --section-gap: 96px;
+  }
+}
