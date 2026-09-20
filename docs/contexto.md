@@ -505,7 +505,7 @@ src/
 - [x] Migração para a API do Cleveland Museum of Art: Hero religado (imageUrl/imageWidth/imageHeight, formatters com artist/date, SearchBar variant dark e grid de 12 colunas no desktop)
 - [x] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
 - [x] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
-- [ ] Fase 7.4: ArtworkModal
+- [x] Fase 7.4: ArtworkModal
 - [ ] Fase 7.5: ExhibitionPanel e Footer
 - [ ] Fase 8: revisão de estados, responsividade e acessibilidade
 - [ ] Fase 9: favicon, metadados e publicação
