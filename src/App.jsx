@@ -60,6 +60,7 @@ function App() {
         themeLabel={themeLabel}
         onQueryChange={handleQueryChange}
         onClearTheme={handleClearTheme}
+        onSelectTheme={handleSelectTheme}
         onOpenArtwork={handleOpenArtwork}
       />
       <ExhibitionPanel onOpenArtwork={handleOpenArtwork} />

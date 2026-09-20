@@ -466,7 +466,7 @@ Layout e seções:
 - StatsStrip: usa useStats.
 - ThemeCarousel (onSelectTheme) e ThemeCard (theme, onSelect): o card é um botão com aria-label "Explorar tema {label}".
 - StepsList.
-- Gallery (query, themeLabel, onQueryChange, onClearTheme, onOpenArtwork): estado local page e type (null); usa useMediaQuery('(max-width: 640px)') para decidir o append.
+- Gallery (query, themeLabel, onQueryChange, onClearTheme, onSelectTheme, onOpenArtwork): estado local page e type (null); usa useMediaQuery('(max-width: 640px)') para decidir o append.
 - Filters (type, onTypeChange): chips fixos vindos de FEATURED_TYPES, mais "Todos" (type null).
 - ArtworkGrid (artworks, onOpen) e ArtworkCard (artwork, onOpen).
 - ArtworkModal (artworkId, onClose).
@@ -504,9 +504,22 @@ src/
 - [x] Migração para a API do Cleveland Museum of Art: camada de dados (artApi, formatters, imageUrl removido, artworkTypes, hooks e contexto da exposição)
 - [x] Migração para a API do Cleveland Museum of Art: Hero religado (imageUrl/imageWidth/imageHeight, formatters com artist/date, SearchBar variant dark e grid de 12 colunas no desktop)
 - [x] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
-- [ ] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
+- [x] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
 - [ ] Fase 7.4: ArtworkModal
 - [ ] Fase 7.5: ExhibitionPanel e Footer
 - [ ] Fase 8: revisão de estados, responsividade e acessibilidade
 - [ ] Fase 9: favicon, metadados e publicação
 - [ ] Fase 10: README
+
+## 11. Polimento visual (pendências)
+
+Esta é uma lista de pendências: os itens só são implementados quando uma tarefa pedir.
+
+- [ ] ThemeCarousel: o primeiro card começa alinhado ao mesmo x do título e da linha do SectionHeader, em qualquer largura de tela, e a faixa continua rolando até a borda direita.
+- [ ] StatsStrip: em caso de erro, mostrar "n/d" nos números. Trocar o caractere de travessão longo (U+2014) por vírgula, dois-pontos, parênteses ou "n/d" nos textos de src e de docs/contexto.md.
+- [ ] Hero: o estado de erro da obra principal usa uma versão escura (fundo var(--color-dark) e texto claro) no lugar do bloco branco.
+- [ ] Hero: reservar a altura da imagem principal com aspect-ratio (mantendo max-height de 70vh) para a página não "pular" quando a imagem carrega.
+- [ ] ThemeCard: capas mais fiéis, com uma obra escolhida por tema (id fixo em THEMES) e a busca atual como alternativa.
+- [ ] Mensagem de erro de rede em artApi.js: trocar "Sem conexão com a internet..." por "Não foi possível falar com o servidor do museu. Verifique sua conexão e tente novamente.", porque a falha também acontece por CORS ou servidor fora do ar.
+- [ ] ArtworkCard: coração com sombra ou contraste em obras claras e área de toque de 44px (área clicável ampliada, ícone do mesmo tamanho). Conferir o alvo de toque do título.
+- [ ] useMediaQuery e o monitoramento de rolagem do Header: usar useSyncExternalStore no lugar de estado com efeito.

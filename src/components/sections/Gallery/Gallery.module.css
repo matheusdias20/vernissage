@@ -1,0 +1,42 @@
+.section {
+  padding: var(--section-gap) 0;
+  background-color: var(--color-band);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.count {
+  margin: 0 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}
+
+.content {
+  margin-top: var(--space-6);
+}
+
+.gridWrapper {
+  transition: opacity var(--transition);
+}
+
+.gridWrapper[aria-busy='true'] {
+  opacity: 0.5;
+}
+
+.pager {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-7);
+}
