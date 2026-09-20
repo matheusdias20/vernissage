@@ -1,0 +1,47 @@
+.grid {
+  column-count: 2;
+  column-gap: var(--space-4);
+}
+
+@media (min-width: 641px) {
+  .grid {
+    column-count: 3;
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid {
+    column-count: 4;
+  }
+}
+
+.skeleton {
+  margin-bottom: var(--space-4);
+  break-inside: avoid;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-border);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.ratio1 {
+  aspect-ratio: 3 / 4;
+}
+
+.ratio2 {
+  aspect-ratio: 4 / 5;
+}
+
+.ratio3 {
+  aspect-ratio: 1 / 1;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}

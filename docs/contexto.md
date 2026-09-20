@@ -489,7 +489,7 @@ src/
 - [x] Fase 5.1: serviço da API, utilitários e constantes
 - [x] Fase 5.2: hooks de dados (useDebounce, useArtworks, useArtworkDetails, useStats)
 - [x] Fase 5.3: estado da exposição (contexto, Provider e useExhibition)
-- [ ] Fase 6: componentes de ui
+- [x] Fase 6: componentes de ui
 - [ ] Fase 7.1: Header e Hero
 - [ ] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
 - [ ] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
