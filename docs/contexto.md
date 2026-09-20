@@ -506,7 +506,7 @@ src/
 - [x] Fase 7.2: StatsStrip, ThemeCarousel e StepsList
 - [x] Fase 7.3: Galeria, Filters, ArtworkGrid e ArtworkCard
 - [x] Fase 7.4: ArtworkModal
-- [ ] Fase 7.5: ExhibitionPanel e Footer
+- [x] Fase 7.5: ExhibitionPanel e Footer
 - [ ] Fase 8: revisão de estados, responsividade e acessibilidade
 - [ ] Fase 9: favicon, metadados e publicação
 - [ ] Fase 10: README

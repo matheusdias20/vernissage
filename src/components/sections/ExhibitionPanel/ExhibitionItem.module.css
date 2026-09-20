@@ -1,0 +1,50 @@
+.item {
+  flex: 0 0 140px;
+}
+
+.media {
+  position: relative;
+}
+
+.imageButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--color-on-dark);
+  filter: drop-shadow(0 1px 3px rgba(28, 27, 26, 0.5));
+}
+
+.title {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.artist {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-small);
+  font-style: italic;
+  color: var(--color-text-muted);
+}
