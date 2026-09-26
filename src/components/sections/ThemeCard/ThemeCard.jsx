@@ -1,26 +1,29 @@
 import { useEffect, useState } from 'react'
-import { searchArtworks } from '../../../services/artApi.js'
+import { getArtworkById, searchArtworks } from '../../../services/artApi.js'
 import styles from './ThemeCard.module.css'
+
+// busca por tema usada como alternativa quando a capa fixa (coverId) falha
+function searchByTheme(query, signal) {
+  return searchArtworks({ query, limit: 1, type: 'Painting', signal }).then((result) => {
+    if (result.artworks[0]) return result.artworks[0]
+    return searchArtworks({ query, limit: 1, signal }).then((fallback) => fallback.artworks[0] ?? null)
+  })
+}
 
 function ThemeCard({ theme, onSelect }) {
   const [cover, setCover] = useState(null)
   const [resolvedKey, setResolvedKey] = useState(null)
 
+  const requestKey = `${theme.coverId}:${theme.query}`
   // loading é derivado: verdadeiro até a busca da capa deste tema ser resolvida
-  const loading = resolvedKey !== theme.query
+  const loading = resolvedKey !== requestKey
 
   useEffect(() => {
-    const key = theme.query
+    const key = `${theme.coverId}:${theme.query}`
     const controller = new AbortController()
 
-    searchArtworks({ query: key, limit: 1, type: 'Painting', signal: controller.signal })
-      .then((result) => {
-        if (result.artworks[0]) return result.artworks[0]
-        // sem pintura para o tema: repete a busca sem restringir o tipo
-        return searchArtworks({ query: key, limit: 1, signal: controller.signal }).then(
-          (fallback) => fallback.artworks[0] ?? null,
-        )
-      })
+    getArtworkById(theme.coverId, { signal: controller.signal })
+      .catch(() => searchByTheme(theme.query, controller.signal))
       .then((artwork) => {
         if (controller.signal.aborted) return
         setCover(artwork ?? null)
@@ -33,7 +36,7 @@ function ThemeCard({ theme, onSelect }) {
       })
 
     return () => controller.abort()
-  }, [theme.query])
+  }, [theme.coverId, theme.query])
 
   return (
     <button

@@ -75,7 +75,12 @@ function ArtworkCard({ artwork, onOpen }) {
         </button>
       </div>
 
-      <button type="button" className={styles.titleButton} onClick={() => onOpen(artwork.id)}>
+      <button
+        type="button"
+        className={styles.titleButton}
+        title={formatField(artwork.title)}
+        onClick={() => onOpen(artwork.id)}
+      >
         {formatField(artwork.title)}
       </button>
       <p className={styles.meta}>

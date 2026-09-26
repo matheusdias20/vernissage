@@ -16,3 +16,7 @@
   max-width: 32ch;
   color: var(--color-text);
 }
+
+.inverted .message {
+  color: var(--color-on-dark);
+}

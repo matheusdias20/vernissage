@@ -37,7 +37,9 @@ async function request(url, { signal } = {}) {
     response = await fetch(url, { signal })
   } catch (error) {
     if (error.name === 'AbortError') throw error
-    throw new Error('Sem conexão com a internet. Verifique e tente novamente.', { cause: error })
+    throw new Error('Não foi possível falar com o servidor do museu. Verifique sua conexão e tente novamente.', {
+      cause: error,
+    })
   }
 
   if (!response.ok) {

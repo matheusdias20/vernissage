@@ -11,12 +11,14 @@ function AlertIcon() {
   )
 }
 
-function ErrorMessage({ message, onRetry }) {
+function ErrorMessage({ message, onRetry, inverted = false }) {
+  const className = [styles.errorMessage, inverted && styles.inverted].filter(Boolean).join(' ')
+
   return (
-    <div className={styles.errorMessage} role="alert">
+    <div className={className} role="alert">
       <AlertIcon />
       <p className={styles.message}>{message}</p>
-      <Button variant="outline" onClick={onRetry}>
+      <Button variant="outline" inverted={inverted} onClick={onRetry}>
         Tentar novamente
       </Button>
     </div>

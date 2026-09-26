@@ -54,6 +54,10 @@ function Hero({ onSearch, onOpenArtwork }) {
     setRetryToken((token) => token + 1)
   }
 
+  const captionText = mainArtwork
+    ? `${formatField(mainArtwork.title)}, ${formatArtist(mainArtwork.artist)}, ${formatDate(mainArtwork.date)}`
+    : ''
+
   async function handleSurprise() {
     // cancela o clique anterior ainda em andamento, para o último clique sempre vencer
     surpriseControllerRef.current?.abort()
@@ -110,7 +114,7 @@ function Hero({ onSearch, onOpenArtwork }) {
 
           {!loading && error && (
             <div className={styles.errorCard}>
-              <ErrorMessage message={error} onRetry={handleRetry} />
+              <ErrorMessage message={error} onRetry={handleRetry} inverted />
             </div>
           )}
 
@@ -121,11 +125,12 @@ function Hero({ onSearch, onOpenArtwork }) {
                   src={mainArtwork.imageUrl}
                   alt={getImageAlt(mainArtwork)}
                   className={styles.mainImage}
+                  style={{ aspectRatio: imageAspectRatio(mainArtwork) }}
                   decoding="async"
                 />
               </button>
-              <p className={styles.caption}>
-                {formatField(mainArtwork.title)}, {formatArtist(mainArtwork.artist)}, {formatDate(mainArtwork.date)}
+              <p className={styles.caption} title={captionText}>
+                {captionText}
               </p>
             </>
           )}
