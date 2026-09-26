@@ -4,7 +4,7 @@ Um painel interativo em React que transforma o acervo aberto do Cleveland Museum
 
 Vernissage é a palavra francesa para a noite de abertura de uma exposição, o momento em que as obras são reveladas ao público pela primeira vez. O nome resume a proposta do projeto: cada visitante monta a própria mostra a partir do acervo do museu e vive a sua própria noite de abertura.
 
-**Aplicação publicada:** _(https://vernissage-museum.vercel.app)_
+**Aplicação publicada:** _(https://vernissage-museum.vercel.app)_ <br/>
 **Repositório:** https://github.com/matheusdias20/vernissage
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
