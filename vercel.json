@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/museu-api/:path*",
-      "destination": "https://openaccess-api.clevelandart.org/api/:path*"
+      "source": "/museu-api/(.*)",
+      "destination": "https://openaccess-api.clevelandart.org/api/$1"
     }
   ]
 }
