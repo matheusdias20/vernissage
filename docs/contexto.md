@@ -20,11 +20,12 @@ Vernissage é um painel interativo em React + Vite que consome a API aberta do C
 - Estilos: CSS Modules por componente (NomeDoComponente/NomeDoComponente.jsx e NomeDoComponente.module.css), variáveis CSS globais em src/styles/variables.css, abordagem mobile-first.
 - Interface em português do Brasil. Os textos das obras (títulos, descrições, técnicas) chegam da API em inglês e são exibidos como chegam.
 - Tipografia: somente Inter (pesos 300, 400, 500 e 600).
-- A marca é o texto "VERNISSAGE" em caixa alta, peso 300 e espaçamento entre letras de 0.3em, feito em CSS no Header e no Footer.
+- A marca é o wordmark em SVG (public/vernissage-wordmark.svg, em grafite, e public/vernissage-wordmark-claro.svg, em off-white, para o Footer), exibido com 240px de largura no desktop e 176px até 640px, no lugar de texto em CSS.
 - Estilo visual minimalista e editorial, com muito respiro, inspirado em galerias de arte.
 - Componentes pequenos, com uma responsabilidade cada. Manter o padrão de export dos componentes já existentes.
 - Toda chamada de API fica em src/services/artApi.js. Componentes e hooks usam as funções de lá e recebem obras no formato normalizado da seção 4.
 - As requisições à API são GET simples, sem cabeçalhos personalizados (sem Content-Type), para funcionarem sem preflight de CORS.
+- As chamadas passam por /museu-api, um proxy do próprio site, em vez de ir direto à API, porque a API bloqueia CORS para o domínio publicado na Vercel (funciona em localhost, mas não em produção). Em produção, vercel.json reescreve /museu-api/* para a API; em desenvolvimento, server.proxy em vite.config.js faz a mesma reescrita, para o comportamento de npm run dev ficar igual ao de produção.
 - URLs de lista (searchArtworks, getTotal, getRandomArtworks) usam BASE_URL mais /artworks/ com barra final antes da query string. URLs de detalhe (getArtworkById) usam BASE_URL mais /artworks/{id}, sem barra final.
 - Imports relativos de arquivos .js usam a extensão.
 - A descrição da obra passa por stripHtml antes de ser exibida como texto.
@@ -40,7 +41,7 @@ Vernissage é um painel interativo em React + Vite que consome a API aberta do C
 
 ## 3. API do Cleveland Museum of Art (verificado em testes reais)
 
-Base: https://openaccess-api.clevelandart.org/api. Sem chave. CORS funciona no navegador (verificado com fetch a partir de localhost:5173). Limite de requisições não documentado; o app usa cache e trata o status 429.
+Base: https://openaccess-api.clevelandart.org/api. Sem chave. O app não chama essa URL diretamente do navegador: as requisições passam por /museu-api, um proxy do próprio site (vercel.json em produção, server.proxy de vite.config.js em desenvolvimento), porque a API bloqueia CORS para o domínio publicado na Vercel (o fetch direto funciona em localhost:5173, verificado, mas não funciona no site publicado). Limite de requisições não documentado; o app usa cache e trata o status 429.
 
 Endpoints:
 - GET /artworks/ devolve { info: { total, parameters }, data: [...] }. A barra final antes da query string é obrigatória nas URLs de lista.
@@ -81,7 +82,7 @@ Formato normalizado de obra, usado por hooks, componentes e pela exposição:
 
 src/services/artApi.js (fetch nativo, GET simples, cache em memória de 10 minutos, suporte a signal):
 - Constantes: BASE_URL; LIST_FIELDS com id, title, creators, creation_date, type e images; DETAIL_FIELDS com os de LIST_FIELDS mais technique, department, culture, measurements, creditline, description e url.
-- Erros em português: 429 "Muitas requisições em pouco tempo. Aguarde um minuto e tente novamente."; outros status "Não foi possível carregar os dados (código X)."; falha de rede "Sem conexão com a internet. Verifique e tente novamente." O AbortError é repassado sem alteração.
+- Erros em português: 429 "Muitas requisições em pouco tempo. Aguarde um minuto e tente novamente."; outros status "Não foi possível carregar os dados (código X)."; falha de rede "Não foi possível falar com o servidor do museu. Verifique sua conexão e tente novamente." O AbortError é repassado sem alteração.
 - searchArtworks({ query = '', page = 1, limit = 12, type = null, signal }): GET /artworks/ com cc0=1, has_image=1, limit, skip igual a (page - 1) * limit, fields, q (quando query após trim não estiver vazio) e type (quando informado). Devolve { artworks (normalizadas), pagination: { total, totalPages: ceil(total / limit), currentPage, limit } }.
 - getArtworkById(id, { signal }): GET /artworks/{id}, sem barra final; devolve a obra normalizada com os campos de detalhe.
 - getTotal({ type = null, withImage = false, signal }): devolve info.total de GET /artworks/?limit=1&fields=id, acrescentando cc0=1 e has_image=1 quando withImage for verdadeiro e type quando informado.
@@ -92,7 +93,7 @@ src/utils:
 - formatters.js: formatArtist ("Artista desconhecido"), formatDate ("Data não informada"), formatField ("Não informado"), formatNumber (pt-BR) e getImageAlt(artwork), que devolve "título, artista" (só o título quando não houver artista).
 
 src/constants:
-- themes.js: THEMES com { id, label, query }: Paisagens (landscape), Retratos (portrait), Animais (animals), Natureza-morta (still life), Mitologia (mythology) e Mar (sea).
+- themes.js: THEMES com { id, label, query, coverId }: Paisagens (landscape, 152006), Retratos (portrait, 124089), Animais (animals, 140408), Natureza-morta (still life, 147607), Mitologia (mythology, 147479) e Mar (sea, 149665). coverId é o id de uma obra do Cleveland escolhida a dedo para representar o tema.
 - artworkTypes.js: FEATURED_TYPES com { value, label }: Painting (Pintura), Print (Gravura), Drawing (Desenho), Sculpture (Escultura), Photograph (Fotografia) e Textile (Têxtil).
 
 src/hooks:
@@ -134,7 +135,7 @@ Paleta (variáveis em src/styles/variables.css):
 - Um único acento na interface, para que as cores das obras sejam as protagonistas.
 
 Tipografia (somente Inter):
-- Marca "VERNISSAGE": 18px, peso 300, caixa alta, espaçamento 0.3em.
+- Marca: wordmark em SVG (240px de largura no desktop, 176px até 640px), sem tipografia em CSS.
 - Título do hero: 48 a 64px fluido com clamp, peso 300, caixa alta.
 - Título de seção: 28 a 32px, peso 300, caixa alta, espaçamento 0.05em.
 - Rótulo acima do título de seção e chips: 13px, peso 500, caixa alta, espaçamento 0.1em.
@@ -259,7 +260,7 @@ Celular:
 +------------------------------------------------------------------------------+
 ```
 - Temas de THEMES. Cards altos (proporção 3:4) com imagem de fundo e o nome do tema na base, sobre um escurecimento leve.
-- A imagem de cada tema vem de searchArtworks com o query do tema e limit 1: primeiro com type Painting e, sem resultado, sem o type. Sem resultado ou com falha, usar o fundo var(--color-band).
+- A imagem de cada tema vem de getArtworkById(theme.coverId). Se essa busca falhar, usa como alternativa searchArtworks com o query do tema e limit 1: primeiro com type Painting e, sem resultado, sem o type. Sem resultado ou com falha, usar o fundo var(--color-band).
 - A última imagem aparece cortada pela borda direita da tela. Faixa horizontal com scroll-snap.
 - O clique aplica o tema como busca (handleSelectTheme) e rola até a Galeria.
 - Celular: cards com 70% da largura, rolagem horizontal e sem as setas.
@@ -518,9 +519,10 @@ Esta é uma lista de pendências: os itens só são implementados quando uma tar
 
 - [x] ThemeCarousel: o primeiro card começa alinhado ao mesmo x do título e da linha do SectionHeader, em qualquer largura de tela, e a faixa continua rolando até a borda direita.
 - [x] StatsStrip: em caso de erro, mostrar "n/d" nos números. Trocar o caractere de travessão longo (U+2014) por vírgula, dois-pontos, parênteses ou "n/d" nos textos de src e de docs/contexto.md.
-- [ ] Hero: o estado de erro da obra principal usa uma versão escura (fundo var(--color-dark) e texto claro) no lugar do bloco branco.
-- [ ] Hero: reservar a altura da imagem principal com aspect-ratio (mantendo max-height de 70vh) para a página não "pular" quando a imagem carrega.
-- [ ] ThemeCard: capas mais fiéis, com uma obra escolhida por tema (id fixo em THEMES) e a busca atual como alternativa.
-- [ ] Mensagem de erro de rede em artApi.js: trocar "Sem conexão com a internet..." por "Não foi possível falar com o servidor do museu. Verifique sua conexão e tente novamente.", porque a falha também acontece por CORS ou servidor fora do ar.
+- [x] Hero: o estado de erro da obra principal usa uma versão escura (fundo var(--color-dark) e texto claro) no lugar do bloco branco.
+- [x] Hero: reservar a altura da imagem principal com aspect-ratio (mantendo max-height de 70vh) para a página não "pular" quando a imagem carrega.
+- [x] ThemeCard: capas mais fiéis, com uma obra escolhida por tema (id fixo em THEMES) e a busca atual como alternativa.
+- [x] Mensagem de erro de rede em artApi.js: trocar "Sem conexão com a internet..." por "Não foi possível falar com o servidor do museu. Verifique sua conexão e tente novamente.", porque a falha também acontece por CORS ou servidor fora do ar.
 - [x] ArtworkCard: coração com sombra ou contraste em obras claras e área de toque de 44px (área clicável ampliada, ícone do mesmo tamanho). Conferir o alvo de toque do título.
-- [ ] useMediaQuery e o monitoramento de rolagem do Header: usar useSyncExternalStore no lugar de estado com efeito.
+- [x] useMediaQuery e o monitoramento de rolagem do Header: usar useSyncExternalStore no lugar de estado com efeito.
+- [x] Legenda do Hero limitada a 2 linhas e título do ArtworkCard limitado a 3 linhas, com reticências (line-clamp) e o texto completo no atributo title.
