@@ -1,4 +1,4 @@
-const BASE_URL = 'https://openaccess-api.clevelandart.org/api'
+const BASE_URL = '/museu-api'
 
 const LIST_FIELDS = ['id', 'title', 'creators', 'creation_date', 'type', 'images']
 
