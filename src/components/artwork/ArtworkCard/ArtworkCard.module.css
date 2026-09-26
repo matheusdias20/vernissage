@@ -91,15 +91,15 @@
   fill: currentColor;
 }
 
-/* alvo de toque de 44px sem mudar a aparência: o padding vertical adicionado é
-   compensado por uma margem negativa do mesmo valor. trava em 3 linhas; o texto
-   completo continua disponível no atributo title */
+/* corta o que passar de 3 linhas, sem reservar altura fixa: cards com título curto ficam
+   mais baixos, o que é seguro porque a Galeria usa colunas soltas, não uma grade rígida.
+   o texto completo continua disponível no atributo title */
 .titleButton {
   display: -webkit-box;
   overflow: hidden;
   width: 100%;
-  margin: calc(var(--space-2) - var(--space-3)) 0 calc(var(--space-3) * -1);
-  padding: var(--space-3) 0;
+  margin-top: var(--space-2);
+  padding: 0;
   text-align: left;
   font-size: var(--fs-body);
   font-weight: var(--fw-medium);

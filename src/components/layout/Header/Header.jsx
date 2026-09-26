@@ -74,6 +74,12 @@ function Header() {
               {link.label}
             </a>
           ))}
+
+          {/* até 640px, o botão de exposição some da faixa de cima e mora aqui dentro */}
+          <a href="#exposicao" className={styles.navExhibitionLink} onClick={closeMenu}>
+            Minha exposição ({count})
+            <ArrowIcon />
+          </a>
         </nav>
 
         <div className={styles.actions}>
