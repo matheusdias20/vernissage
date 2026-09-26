@@ -11,7 +11,7 @@ function Footer() {
     <footer className={styles.footer}>
       <div className={`container ${styles.grid}`}>
         <div className={styles.brandColumn}>
-          <p className={styles.brand}>Vernissage</p>
+          <img src="/vernissage-wordmark-claro.svg" alt="Vernissage" className={styles.brandImage} />
           <p className={styles.tagline}>Explore o acervo do Cleveland Museum of Art e monte a sua própria exposição.</p>
         </div>
 

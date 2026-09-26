@@ -1,6 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useExhibition } from '../../../hooks/useExhibition.js'
 import styles from './Header.module.css'
+
+function subscribeToScroll(callback) {
+  window.addEventListener('scroll', callback, { passive: true })
+  return () => window.removeEventListener('scroll', callback)
+}
+
+function getScrolledSnapshot() {
+  return window.scrollY > 0
+}
 
 function MenuIcon() {
   return (
@@ -32,18 +41,8 @@ const NAV_LINKS = [
 
 function Header() {
   const { count } = useExhibition()
-  const [scrolled, setScrolled] = useState(false)
+  const scrolled = useSyncExternalStore(subscribeToScroll, getScrolledSnapshot)
   const [menuOpen, setMenuOpen] = useState(false)
-
-  useEffect(() => {
-    function handleScroll() {
-      setScrolled(window.scrollY > 0)
-    }
-
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   useEffect(() => {
     if (!menuOpen) return undefined
@@ -62,7 +61,7 @@ function Header() {
     <header className={scrolled ? `${styles.header} ${styles.scrolled}` : styles.header}>
       <div className={`container ${styles.bar}`}>
         <a href="#topo" className={styles.brand}>
-          Vernissage
+          <img src="/vernissage-wordmark.svg" alt="Vernissage" className={styles.brandImage} />
         </a>
 
         <nav

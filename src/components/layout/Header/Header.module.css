@@ -23,12 +23,24 @@
 }
 
 .brand {
-  white-space: nowrap;
-  text-decoration: none;
-  font-size: var(--fs-brand);
-  font-weight: var(--fw-light);
-  letter-spacing: var(--ls-brand);
-  text-transform: uppercase;
+  display: inline-flex;
+}
+
+.brandImage {
+  display: block;
+  flex: none;
+  width: 176px;
+  min-width: 176px;
+  max-width: none;
+  height: auto;
+  aspect-ratio: 517.2 / 33;
+}
+
+@media (min-width: 641px) {
+  .brandImage {
+    width: 240px;
+    min-width: 240px;
+  }
 }
 
 .nav {
